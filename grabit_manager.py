@@ -1,15 +1,16 @@
 #-*-coding=utf-8-*-
 #importamos librerias
-from flask import Flask, render_template, request, json, jsonify
+from flask import Flask, render_template, request, json, jsonify, Response
+import random
 from datetime import datetime, date
+import time
 import os
 import sys
 import boto3
 
 
 #constantes
-cluster_arn=""
-secret_arn=""
+
 nombre_db = 'grabit_ai'
 nombre_columnas=[
     "id",
@@ -21,7 +22,7 @@ nombre_columnas=[
 client =boto3.client('iotsitewise',region_name='eu-west-1') #Recordar que nuestros dispositivos estan configurados en Irlanda
 #se creat la aplicacion flask
 app = Flask(__name__)
-
+random.seed() # initialize the random number generator
 
 ############################################################## funciones de ayuda #########################################################
 def insertar_datos_db(sql):
@@ -183,6 +184,17 @@ def leer_datos_sideways():
         'info_total_asset': info_total_asset
     }
     return jsonify(result=informacion_completa)
+
+@app.route('/chart-data')
+def chart_data():
+    def generate_random_data():
+        while True:
+            json_data = json.dumps(
+                {'time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'), 'value': random.random() * 100})
+            yield f"data:{json_data}\n\n"
+            time.sleep(1)
+
+    return Response(generate_random_data(), mimetype='text/event-stream')
 
 if __name__=="__main__":
     app.run()
