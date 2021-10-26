@@ -183,18 +183,44 @@ def leer_datos_sideways():
         'asset_id': asset_elegido['id'],
         'info_total_asset': info_total_asset
     }
+    
+    
     return jsonify(result=informacion_completa)
 
 @app.route('/chart-data')
 def chart_data():
     def generate_random_data():
+        datos_sitewise=conseguir_asset_id()
         while True:
+            data=conseguir_info_momento(datos_sitewise[0], datos_sitewise[1])
             json_data = json.dumps(
-                {'time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'), 'value': random.random() * 100})
+                {'time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'), 'value': data[0], 'value_thermal':data[1]})
             yield f"data:{json_data}\n\n"
             time.sleep(1)
+            print(json_data)
 
     return Response(generate_random_data(), mimetype='text/event-stream')
+
+#Funcion que devulve los ultimos datos de la CPU y su temperatura
+def conseguir_info_momento(asset, id_asset):
+    cpu=client.get_asset_property_value(
+        assetId=id_asset,
+        propertyId=asset['assetProperties'][1]['id'],
+    )
+    temp=client.get_asset_property_value(
+        assetId=id_asset,
+        propertyId=asset['assetProperties'][12]['id'],
+    )
+    return(cpu['propertyValue']['value']['doubleValue'],temp['propertyValue']['value']['doubleValue'])
+
+def conseguir_asset_id():
+    contenido_modelos = conseguir_modelos()
+    modelo_elegido = contenido_modelos[1]  # Usamos el id del modelo 'SiteWise Tutorial Device Model'
+    assets = conseguir_assets(modelo_elegido['id'])
+
+    asset_elegido = assets['assetSummaries'][1]  # Usamos el id del modelo 'SiteWise Tutorial Device 3'
+    asset = conseguir_asset(asset_elegido['id'])
+    return asset,asset_elegido['id']
 
 if __name__=="__main__":
     app.run()

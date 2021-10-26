@@ -14,7 +14,7 @@ def main():
     asset=conseguir_asset(asset_elegido['id'])
     
     info_total_asset=conseguir_info_total_asset(asset,asset_elegido['id'])
-
+    print(conseguir_info_momento(asset,asset_elegido['id']))
     informacion_completa={
         'model_name':modelo_elegido['name'],
         'model_id':modelo_elegido['id'],
@@ -35,7 +35,7 @@ def main():
         'GPU_temp': informacion_completa['info_total_asset'][13],
         'thermal': informacion_completa['info_total_asset'][14]
     }
-    print(informacion_especifica['CPU1'])
+    #print(informacion_especifica['CPU1'])
     #Si devuelve list index out of range no hay informacion
 
 
@@ -124,6 +124,17 @@ def conseguir_info_total_asset(asset, id_asset):
 
         info_total_asset.append(propiedades)
     return info_total_asset
+
+def conseguir_info_momento(asset, id_asset):
+    cpu=client.get_asset_property_value(
+        assetId=id_asset,
+        propertyId=asset['assetProperties'][1]['id'],
+    )
+    temp=client.get_asset_property_value(
+        assetId=id_asset,
+        propertyId=asset['assetProperties'][12]['id'],
+    )
+    return(cpu['propertyValue']['value']['doubleValue'],temp['propertyValue']['value']['doubleValue'])
 
 
 if __name__ == "__main__":
