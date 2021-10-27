@@ -171,7 +171,7 @@ def leer_datos_sideways():
     modelo_elegido = contenido_modelos[1]  # Usamos el id del modelo 'SiteWise Tutorial Device Model'
     assets = conseguir_assets(modelo_elegido['id'])
 
-    asset_elegido = assets['assetSummaries'][1]  # Usamos el id del modelo 'SiteWise Tutorial Device 3'
+    asset_elegido = assets['assetSummaries'][0]  # Usamos el id del modelo 'SiteWise Tutorial Device 3'
     asset = conseguir_asset(asset_elegido['id'])
 
     info_total_asset = conseguir_info_total_asset(asset, asset_elegido['id'])
@@ -194,10 +194,10 @@ def chart_data():
         while True:
             data=conseguir_info_momento(datos_sitewise[0], datos_sitewise[1])
             json_data = json.dumps(
-                {'time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'), 'value': data[0], 'value_thermal':data[1]})
+                {'time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'), 'CPU': data[0], 'thermal':data[1]})
             yield f"data:{json_data}\n\n"
             time.sleep(1)
-            print(json_data)
+            #print(json_data)
 
     return Response(generate_random_data(), mimetype='text/event-stream')
 
@@ -218,7 +218,7 @@ def conseguir_asset_id():
     modelo_elegido = contenido_modelos[1]  # Usamos el id del modelo 'SiteWise Tutorial Device Model'
     assets = conseguir_assets(modelo_elegido['id'])
 
-    asset_elegido = assets['assetSummaries'][1]  # Usamos el id del modelo 'SiteWise Tutorial Device 3'
+    asset_elegido = assets['assetSummaries'][0]  # Usamos el id del modelo 'SiteWise Tutorial Device 3'
     asset = conseguir_asset(asset_elegido['id'])
     return asset,asset_elegido['id']
 
