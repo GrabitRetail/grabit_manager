@@ -9,7 +9,7 @@ def main():
     contenido_modelos=conseguir_modelos()
     modelo_elegido=contenido_modelos[1] # Usamos el id del modelo 'SiteWise Tutorial Device Model'
     assets=conseguir_assets(modelo_elegido['id'])
-
+    print(assets['assetSummaries'][3])
     asset_elegido=assets['assetSummaries'][1] #Usamos el id del modelo 'SiteWise Tutorial Device 3'
     asset=conseguir_asset(asset_elegido['id'])
     

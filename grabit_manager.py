@@ -171,7 +171,7 @@ def leer_datos_sideways():
     modelo_elegido = contenido_modelos[1]  # Usamos el id del modelo 'SiteWise Tutorial Device Model'
     assets = conseguir_assets(modelo_elegido['id'])
 
-    asset_elegido = assets['assetSummaries'][0]  # Usamos el id del modelo 'SiteWise Tutorial Device 3'
+    asset_elegido = assets['assetSummaries'][3]  # Usamos el id del asset de la Jetson del frigorifico de Mahou
     asset = conseguir_asset(asset_elegido['id'])
 
     info_total_asset = conseguir_info_total_asset(asset, asset_elegido['id'])
@@ -218,7 +218,7 @@ def conseguir_asset_id():
     modelo_elegido = contenido_modelos[1]  # Usamos el id del modelo 'SiteWise Tutorial Device Model'
     assets = conseguir_assets(modelo_elegido['id'])
 
-    asset_elegido = assets['assetSummaries'][0]  # Usamos el id del modelo 'SiteWise Tutorial Device 3'
+    asset_elegido = assets['assetSummaries'][3]  # Usamos el id del asset de la Jetson del frigorifico de Mahou
     asset = conseguir_asset(asset_elegido['id'])
     return asset,asset_elegido['id']
 
