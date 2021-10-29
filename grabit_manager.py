@@ -174,16 +174,12 @@ def leer_datos_sideways():
     asset_elegido = assets['assetSummaries'][3]  # Usamos el id del asset de la Jetson del frigorifico de Mahou
     asset = conseguir_asset(asset_elegido['id'])
 
-    #info_total_asset = conseguir_info_total_asset(asset, asset_elegido['id'])
-
     informacion_completa = {
         'model_name': modelo_elegido['name'],
         'asset_name': asset_elegido['name'], #Nombre del equipo
         'fecha_inicio_uso':asset['assetCreationDate'],
-        'direccion': "Dirección de la Jetson",
-        
-    }
-    
+        'direccion':conseguir_info_momento(asset,asset_elegido['id'],1)['stringValue'],
+    }    
     return jsonify(result=informacion_completa)
 
 @app.route('/chart-data')
@@ -193,13 +189,12 @@ def chart_data():
         while True:
             json_data = json.dumps(
                 {'time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'), 
-                'CPU': conseguir_info_momento(datos_sitewise[0], datos_sitewise[1],1), 
-                'thermal':conseguir_info_momento(datos_sitewise[0], datos_sitewise[1],12),
-                'temp_nevera':conseguir_info_momento(datos_sitewise[0], datos_sitewise[1],23)
+                'CPU': conseguir_info_momento(datos_sitewise[0], datos_sitewise[1],2)['doubleValue'], 
+                'thermal':conseguir_info_momento(datos_sitewise[0], datos_sitewise[1],13)['doubleValue'],
+                'temp_nevera':conseguir_info_momento(datos_sitewise[0], datos_sitewise[1],24)['doubleValue']
                 })
             yield f"data:{json_data}\n\n"
             time.sleep(1)
-            #print(json_data)
 
     return Response(generate_random_data(), mimetype='text/event-stream')
 
@@ -209,7 +204,7 @@ def conseguir_info_momento(asset, id_asset,propiedad):
         assetId=id_asset,
         propertyId=asset['assetProperties'][propiedad]['id'],
     )
-    return(info['propertyValue']['value']['doubleValue'])
+    return(info['propertyValue']['value'])
 
 """ORDEN DE PROPIEDAES DE UN ASSET
 nombre

@@ -22,7 +22,7 @@ def main():
         'asset_id': asset_elegido['id'],
         'info_total_asset':info_total_asset
     }
-
+    print(conseguir_info_momento(asset,asset_elegido['id'],1)['string'])
     #print(informacion_completa['model_name'],informacion_completa['model_id'],informacion_completa['asset_name'],informacion_completa['asset_id'],
     #informacion_completa['info_total_asset'][0]['nombre'],informacion_completa['info_total_asset'][0]['contenido'][0]['valores'])
 
