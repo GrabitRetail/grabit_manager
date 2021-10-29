@@ -174,16 +174,15 @@ def leer_datos_sideways():
     asset_elegido = assets['assetSummaries'][3]  # Usamos el id del asset de la Jetson del frigorifico de Mahou
     asset = conseguir_asset(asset_elegido['id'])
 
-    info_total_asset = conseguir_info_total_asset(asset, asset_elegido['id'])
+    #info_total_asset = conseguir_info_total_asset(asset, asset_elegido['id'])
 
     informacion_completa = {
         'model_name': modelo_elegido['name'],
-        'model_id': modelo_elegido['id'],
-        'asset_name': asset_elegido['name'],
-        'asset_id': asset_elegido['id'],
-        'info_total_asset': info_total_asset
+        'asset_name': asset_elegido['name'], #Nombre del equipo
+        'fecha_inicio_uso':asset['assetCreationDate'],
+        'direccion': "Dirección de la Jetson",
+        
     }
-    
     
     return jsonify(result=informacion_completa)
 
@@ -192,9 +191,12 @@ def chart_data():
     def generate_random_data():
         datos_sitewise=conseguir_asset_id()
         while True:
-            data=conseguir_info_momento(datos_sitewise[0], datos_sitewise[1])
             json_data = json.dumps(
-                {'time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'), 'CPU': data[0], 'thermal':data[1]})
+                {'time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'), 
+                'CPU': conseguir_info_momento(datos_sitewise[0], datos_sitewise[1],1), 
+                'thermal':conseguir_info_momento(datos_sitewise[0], datos_sitewise[1],12),
+                'temp_nevera':conseguir_info_momento(datos_sitewise[0], datos_sitewise[1],23)
+                })
             yield f"data:{json_data}\n\n"
             time.sleep(1)
             #print(json_data)
@@ -202,16 +204,40 @@ def chart_data():
     return Response(generate_random_data(), mimetype='text/event-stream')
 
 #Funcion que devulve los ultimos datos de la CPU y su temperatura
-def conseguir_info_momento(asset, id_asset):
-    cpu=client.get_asset_property_value(
+def conseguir_info_momento(asset, id_asset,propiedad):
+    info=client.get_asset_property_value(
         assetId=id_asset,
-        propertyId=asset['assetProperties'][1]['id'],
+        propertyId=asset['assetProperties'][propiedad]['id'],
     )
-    temp=client.get_asset_property_value(
-        assetId=id_asset,
-        propertyId=asset['assetProperties'][12]['id'],
-    )
-    return(cpu['propertyValue']['value']['doubleValue'],temp['propertyValue']['value']['doubleValue'])
+    return(info['propertyValue']['value']['doubleValue'])
+
+"""ORDEN DE PROPIEDAES DE UN ASSET
+nombre
+CPU 1 usage
+CPU 2 usage
+CPU 3 usage
+CPU 4 usage
+CPU 5 usage
+CPU 6 usage
+CPU 7 usage
+CPU 8 usage
+RAM usage
+RAM total
+GPU usage
+CPU Temp
+GPU Temp
+Thermal
+TempAO
+TempPPL
+IP
+Jetpack version
+Numero Aperturas
+Tiempo Medio Aperturas
+Cervezas Mahou
+Otros elementos
+Temp Nevera
+Direccion
+"""
 
 def conseguir_asset_id():
     contenido_modelos = conseguir_modelos()

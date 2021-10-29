@@ -122,6 +122,8 @@ def conseguir_info_total_asset(asset, id_asset):
             'contenido': content
         }
 
+        print(j['name'])
+
         info_total_asset.append(propiedades)
     return info_total_asset
 
