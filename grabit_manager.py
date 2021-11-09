@@ -7,6 +7,7 @@ import time
 import os
 import sys
 import boto3
+from random import randrange
 
 
 #######CONSTANTES####
@@ -197,7 +198,8 @@ def chart_data():
             total_mahou=cervezas_mahou-offset_mahou+int(conseguir_info_momento(datos_sitewise[0], datos_sitewise[1],-5)['integerValue'])
             json_data = json.dumps(
                 {'time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'), 
-                'CPU': conseguir_info_momento(datos_sitewise[0], datos_sitewise[1],2)['doubleValue'], 
+                #'CPU': conseguir_info_momento(datos_sitewise[0], datos_sitewise[1],2)['doubleValue'], 
+                'CPU':generar_valores(),
                 'thermal':conseguir_info_momento(datos_sitewise[0], datos_sitewise[1],13)['doubleValue'],
                 'temp_nevera':conseguir_info_momento(datos_sitewise[0], datos_sitewise[1],-3)['doubleValue'],
                 'num_aperturas':conseguir_info_momento(datos_sitewise[0], datos_sitewise[1],-6)['integerValue'],
@@ -259,29 +261,36 @@ def conseguir_asset_id():
     return asset,asset_elegido['id']
 
 
+#Funciones para cambiar el valor inicial de numeros de cerveza dentro del frigorifico
+
 @app.route('/set_otros', methods=['POST'])
 def set_otros():
     global otros
     global offset_otros
     datos_sitewise=conseguir_asset_id()
-    otros=int(request.form['otros'])
+    otros=int(request.form['otros']) #Cambiar este valor para mapearlo con la forma que se tienen que recibir los valores
     offset_otros=int(conseguir_info_momento(datos_sitewise[0], datos_sitewise[1],-4)['integerValue'])
     print('Numero de inicio de otras cervezas: '+str(otros)+' Numero de Offset cervezas Mahou'+str(offset_otros))
-    return jsonify({'status':'OK'})
+    return jsonify({'status':'OK'})#Cambiar esto con lo que tenga que ser, el html o lo que haya que mostrar 
 
 @app.route('/set_mahou', methods=['POST'])
 def set_mahou():
     global cervezas_mahou
     global offset_mahou
     datos_sitewise=conseguir_asset_id()
-    cervezas_mahou=int(request.form['cerveza_mahou'])
+    cervezas_mahou=int(request.form['cerveza_mahou']) #Cambiar este valor para mapearlo con la forma que se tienen que recibir los valores
     offset_mahou=int(conseguir_info_momento(datos_sitewise[0], datos_sitewise[1],-5)['integerValue'])
     print('Numero de inicio de cervezas Mahou: '+str(cervezas_mahou)+' Numero de Offset cervezas Mahou'+str(offset_mahou))
-    return jsonify({'status':'OK'})
+    return jsonify({'status':'OK'})#Cambiar esto con lo que tenga que ser, el html o lo que haya que mostrar 
+
+#Genera valores falsos de la CPU para mostrarlos en la grafica
+def generar_valores():
+    dc=47 #Valor minimo que se va a mostrar en la grafica
+    ac=15 #Desviacion maxima que tendra el valor en la grafica
+    valor=dc+ac*randrange(100)*0.01   
+    return(valor)
+
 
 if __name__=="__main__":
     app.run()
-
-
-
-
+           
