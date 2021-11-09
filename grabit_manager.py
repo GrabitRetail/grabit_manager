@@ -9,7 +9,13 @@ import sys
 import boto3
 
 
-#constantes
+#######CONSTANTES####
+
+otros=0 #Numero de inicio de cervezas que no sean de mahou
+offset_otros=0 #Numero de offset de cervezas que no sean de mahou
+
+cervezas_mahou=0 #Numero de inicio de cervezas que sean de mahou
+offset_mahou=0 #Numero de offset de cervezas que sean de mahou
 
 nombre_db = 'grabit_ai'
 nombre_columnas=[
@@ -168,7 +174,7 @@ def insertar():
 @app.route('/leer_datos_sideways')
 def leer_datos_sideways():
     contenido_modelos = conseguir_modelos()
-    modelo_elegido = contenido_modelos[1]  # Usamos el id del modelo 'SiteWise Tutorial Device Model'
+    modelo_elegido = contenido_modelos[2]  # Usamos el id del modelo 'SiteWise Tutorial Device Model'
     assets = conseguir_assets(modelo_elegido['id'])
 
     asset_elegido = assets['assetSummaries'][3]  # Usamos el id del asset de la Jetson del frigorifico de Mahou
@@ -187,14 +193,24 @@ def chart_data():
     def generate_random_data():
         datos_sitewise=conseguir_asset_id()
         while True:
+            total_otros=otros-offset_otros+int(conseguir_info_momento(datos_sitewise[0], datos_sitewise[1],-4)['integerValue'])
+            total_mahou=cervezas_mahou-offset_mahou+int(conseguir_info_momento(datos_sitewise[0], datos_sitewise[1],-5)['integerValue'])
             json_data = json.dumps(
                 {'time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'), 
                 'CPU': conseguir_info_momento(datos_sitewise[0], datos_sitewise[1],2)['doubleValue'], 
                 'thermal':conseguir_info_momento(datos_sitewise[0], datos_sitewise[1],13)['doubleValue'],
-                'temp_nevera':conseguir_info_momento(datos_sitewise[0], datos_sitewise[1],24)['doubleValue']
+                'temp_nevera':conseguir_info_momento(datos_sitewise[0], datos_sitewise[1],-3)['doubleValue'],
+                'num_aperturas':conseguir_info_momento(datos_sitewise[0], datos_sitewise[1],-6)['integerValue'],
+                'tiempo_aperturas':conseguir_info_momento(datos_sitewise[0], datos_sitewise[1],-2)['stringValue'],
+                'otros':total_otros,
+                'cervezas_mahou':total_mahou                
                 })
             yield f"data:{json_data}\n\n"
+            print(json_data)
             time.sleep(1)
+            print('Numero de inicio de cervezas Mahou: '+str(cervezas_mahou)+' Numero de Offset cervezas Mahou'+str(offset_mahou))
+            print('Numero de inicio de otras cervezas: '+str(otros)+'  Numero de Offset cervezas: '+str(offset_otros))
+    
 
     return Response(generate_random_data(), mimetype='text/event-stream')
 
@@ -208,6 +224,7 @@ def conseguir_info_momento(asset, id_asset,propiedad):
 
 """ORDEN DE PROPIEDAES DE UN ASSET
 nombre
+dirección
 CPU 1 usage
 CPU 2 usage
 CPU 3 usage
@@ -222,26 +239,45 @@ GPU usage
 CPU Temp
 GPU Temp
 Thermal
-TempAO
-TempPPL
 IP
 Jetpack version
 Numero Aperturas
-Tiempo Medio Aperturas
 Cervezas Mahou
 Otros elementos
 Temp Nevera
-Direccion
+Tiempo Medio Aperturas
+tiempo_aperturas
 """
 
 def conseguir_asset_id():
     contenido_modelos = conseguir_modelos()
-    modelo_elegido = contenido_modelos[1]  # Usamos el id del modelo 'SiteWise Tutorial Device Model'
+    modelo_elegido = contenido_modelos[2]  # Usamos el id del modelo 'SiteWise Tutorial Device Model'
     assets = conseguir_assets(modelo_elegido['id'])
 
     asset_elegido = assets['assetSummaries'][3]  # Usamos el id del asset de la Jetson del frigorifico de Mahou
     asset = conseguir_asset(asset_elegido['id'])
     return asset,asset_elegido['id']
+
+
+@app.route('/set_otros', methods=['POST'])
+def set_otros():
+    global otros
+    global offset_otros
+    datos_sitewise=conseguir_asset_id()
+    otros=int(request.form['otros'])
+    offset_otros=int(conseguir_info_momento(datos_sitewise[0], datos_sitewise[1],-4)['integerValue'])
+    print('Numero de inicio de otras cervezas: '+str(otros)+' Numero de Offset cervezas Mahou'+str(offset_otros))
+    return jsonify({'status':'OK'})
+
+@app.route('/set_mahou', methods=['POST'])
+def set_mahou():
+    global cervezas_mahou
+    global offset_mahou
+    datos_sitewise=conseguir_asset_id()
+    cervezas_mahou=int(request.form['cerveza_mahou'])
+    offset_mahou=int(conseguir_info_momento(datos_sitewise[0], datos_sitewise[1],-5)['integerValue'])
+    print('Numero de inicio de cervezas Mahou: '+str(cervezas_mahou)+' Numero de Offset cervezas Mahou'+str(offset_mahou))
+    return jsonify({'status':'OK'})
 
 if __name__=="__main__":
     app.run()

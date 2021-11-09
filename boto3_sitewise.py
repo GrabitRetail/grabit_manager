@@ -7,14 +7,14 @@ client =boto3.client('iotsitewise',region_name='eu-west-1') #Recordar que nuestr
 def main():
     
     contenido_modelos=conseguir_modelos()
-    modelo_elegido=contenido_modelos[1] # Usamos el id del modelo 'SiteWise Tutorial Device Model'
+    modelo_elegido=contenido_modelos[2] # Usamos el id del modelo 'SiteWise Tutorial Device Model'
     assets=conseguir_assets(modelo_elegido['id'])
     print(assets['assetSummaries'][3])
-    asset_elegido=assets['assetSummaries'][1] #Usamos el id del modelo 'SiteWise Tutorial Device 3'
+    asset_elegido=assets['assetSummaries'][3] #Usamos el id del modelo 'SiteWise Tutorial Device 3'
     asset=conseguir_asset(asset_elegido['id'])
     
     info_total_asset=conseguir_info_total_asset(asset,asset_elegido['id'])
-    print(conseguir_info_momento(asset,asset_elegido['id']))
+    print(conseguir_info_momento(asset,asset_elegido['id'],-2))
     informacion_completa={
         'model_name':modelo_elegido['name'],
         'model_id':modelo_elegido['id'],
@@ -22,7 +22,6 @@ def main():
         'asset_id': asset_elegido['id'],
         'info_total_asset':info_total_asset
     }
-    print(conseguir_info_momento(asset,asset_elegido['id'],1)['string'])
     #print(informacion_completa['model_name'],informacion_completa['model_id'],informacion_completa['asset_name'],informacion_completa['asset_id'],
     #informacion_completa['info_total_asset'][0]['nombre'],informacion_completa['info_total_asset'][0]['contenido'][0]['valores'])
 
@@ -127,17 +126,13 @@ def conseguir_info_total_asset(asset, id_asset):
         info_total_asset.append(propiedades)
     return info_total_asset
 
-def conseguir_info_momento(asset, id_asset):
-    cpu=client.get_asset_property_value(
-        assetId=id_asset,
-        propertyId=asset['assetProperties'][1]['id'],
-    )
-    temp=client.get_asset_property_value(
-        assetId=id_asset,
-        propertyId=asset['assetProperties'][12]['id'],
-    )
-    return(cpu['propertyValue']['value']['doubleValue'],temp['propertyValue']['value']['doubleValue'])
 
+def conseguir_info_momento(asset, id_asset,propiedad):
+    info=client.get_asset_property_value(
+        assetId=id_asset,
+        propertyId=asset['assetProperties'][propiedad]['id'],
+    )
+    return(info['propertyValue']['value'])
 
 if __name__ == "__main__":
     main()
