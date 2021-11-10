@@ -186,7 +186,7 @@ def leer_datos_sideways():
 
     informacion_completa = {
         'model_name': modelo_elegido['name'],
-        'asset_name': asset_elegido['name'],  # Nombre del equipo
+        'asset_name': conseguir_info_momento(asset, asset_elegido['id'], 0)['stringValue'],  # Nombre del equipo
         'fecha_inicio_uso': asset['assetCreationDate'],
         'direccion': conseguir_info_momento(asset, asset_elegido['id'], 1)['stringValue'],
     }
