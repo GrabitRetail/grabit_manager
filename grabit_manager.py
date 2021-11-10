@@ -9,8 +9,7 @@ import sys
 import boto3
 from random import randrange
 
-cluster_arn="arn:aws:rds:eu-west-2:936810513177:cluster:grabit"
-secret_arn="arn:aws:secretsmanager:eu-west-2:936810513177:secret:rds-db-credentials/cluster-ZYD4OUSXSHYWHZJBNN4Y5ZWHZ4/admin-BXS1VO"
+
 #constantes
 
 otros=0 #Numero de inicio de cervezas que no sean de mahou
@@ -204,19 +203,19 @@ def chart_data():
             total_mahou = cervezas_mahou - offset_mahou + int(
                 conseguir_info_momento(datos_sitewise[0], datos_sitewise[1], -5)['integerValue'])
             json_data = json.dumps(
-                {'time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                {'time': datetime.now().strftime('%H:%M:%S'),
                  #'CPU': conseguir_info_momento(datos_sitewise[0], datos_sitewise[1], 2)['doubleValue'],
                  'CPU': generar_valores(),
                  'thermal':conseguir_info_momento(datos_sitewise[0], datos_sitewise[1],13)['doubleValue'],
                  'temp_nevera':conseguir_info_momento(datos_sitewise[0], datos_sitewise[1],-3)['doubleValue'],
                  'num_aperturas':conseguir_info_momento(datos_sitewise[0], datos_sitewise[1],-6)['integerValue'],
-                 'tiempo_aperturas':conseguir_info_momento(datos_sitewise[0], datos_sitewise[1],-2)['stringValue'],
+                 'tiempo_aperturas':conseguir_info_momento(datos_sitewise[0], datos_sitewise[1],-2)['stringValue'][7:],
                  'otros':total_otros,
                  'cervezas_mahou':total_mahou
                  })
             yield f"data:{json_data}\n\n"
             print(json_data)
-            time.sleep(1)
+            time.sleep(2)
             print(
                 'Numero de inicio de cervezas Mahou: ' + str(cervezas_mahou) + ' Numero de Offset cervezas Mahou' + str(
                     offset_mahou))

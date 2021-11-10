@@ -1,7 +1,7 @@
 // Initialize and add the map
 function initMap() {
-    // The location of Uluru
-        const uluru = { lat: 40.4381311, lng:-3.8196215 };
+    // The location of Uluru,-3.6945454
+        const uluru = { lat: 40.3859417, lng:-3.6945454 };
         // The map, centered at Uluru
         const map = new google.maps.Map(document.getElementById("div_dashboard_map"), {
           zoom: 4,
@@ -23,7 +23,7 @@ function initMap() {
             data: {
                 labels: [],
                 datasets: [{
-                    label: "Random Dataset",
+                    label: "(%)",
                     backgroundColor: 'rgb(255, 99, 132)',
                     borderColor: 'rgb(255, 99, 132)',
                     data: [],
@@ -33,7 +33,7 @@ function initMap() {
             options: {
                 responsive: true,
                 title: {
-                    display: true,
+                    display: false,
                     text: 'Creating Real-Time Charts with Flask'
                 },
                 tooltips: {
@@ -68,7 +68,7 @@ function initMap() {
             data: {
                 labels: [],
                 datasets: [{
-                    label: "Random Dataset",
+                    label: "(°C)",
                     backgroundColor: 'rgb(255, 99, 132)',
                     borderColor: 'rgb(255, 99, 132)',
                     data: [],
@@ -78,7 +78,7 @@ function initMap() {
             options: {
                 responsive: true,
                 title: {
-                    display: true,
+                    display: false,
                     text: 'Creating Real-Time Charts with Flask'
                 },
                 tooltips: {
@@ -114,18 +114,48 @@ function initMap() {
           const lineChart_cpu = new Chart(context_cpu, config_cpu);
           const lineChart_temp = new Chart(context_temp, config_temp);
 
-          const source_cpu = new EventSource("/chart-data");
-          const source_temp = new EventSource("/chart-data");
-          var source_cervezas_mahou = new EventSource("/chart-data");
-          var source_cervezas_otras = new EventSource("/chart-data");
+          const source = new EventSource("/chart-data");
+          //const source_temp = new EventSource("/chart-data");
+          //var source_cervezas_mahou = new EventSource("/chart-data");
+          //var source_cervezas_otras = new EventSource("/chart-data");
+          //var source_aperturas = new EventSource("/chart-data");
+          //var source_aperturas_tiempo = new EventSource("/chart-data");
 
-          source_cervezas_mahou.onmessage = function(event) {
-            const data_cervezas_mahou = JSON.parse(event.data);
-            document.getElementById("cervezas_mahou").innerHTML = data_cervezas_mahou.cervezas_mahou;
+          source.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            document.getElementById("cervezas_mahou").innerHTML = data.cervezas_mahou;
+            document.getElementById("cervezas_otras").innerHTML = data.otros;
+            document.getElementById("numero_aperturas").innerHTML = data.num_aperturas;
+            document.getElementById("tiempo_medio_aperturas").innerHTML = data.tiempo_aperturas;
+
+            if (config_cpu.data.labels.length === 20) {
+                config_cpu.data.labels.shift();
+                config_cpu.data.datasets[0].data.shift();
+            }
+            config_cpu.data.labels.push(data.time);
+            config_cpu.data.datasets[0].data.push(data.CPU);
+            lineChart_cpu.update();
+
+            if (config_temp.data.labels.length === 20) {
+                config_temp.data.labels.shift();
+                config_temp.data.datasets[0].data.shift();
+            }
+            config_temp.data.labels.push(data.time);
+            config_temp.data.datasets[0].data.push(data.temp_nevera);
+            lineChart_temp.update();
           };
+          /*
           source_cervezas_otras.onmessage = function(event) {
             const data_cervezas_otras = JSON.parse(event.data);
             document.getElementById("cervezas_otras").innerHTML = data_cervezas_otras.otros;
+          };
+          source_aperturas.onmessage = function(event) {
+            const data_aperturas = JSON.parse(event.data);
+            document.getElementById("numero_aperturas").innerHTML = data_aperturas.num_aperturas;
+          };
+          source_aperturas_tiempo.onmessage = function(event) {
+            const data_aperturas_tiempo = JSON.parse(event.data);
+            document.getElementById("tiempo_medio_aperturas").innerHTML = data_aperturas_tiempo.tiempo_aperturas;
           };
 
           source_cpu.onmessage = function (event) {
@@ -146,9 +176,10 @@ function initMap() {
                 config_temp.data.datasets[0].data.shift();
             }
             config_temp.data.labels.push(data_temp.time);
-            config_temp.data.datasets[0].data.push(data_temp.thermal);
+            config_temp.data.datasets[0].data.push(data_temp.temp_nevera);
             lineChart_temp.update();
           }
+          */
 
 
 
@@ -158,7 +189,7 @@ function initMap() {
             }, function(data) {
                     console.log(data.result.asset_name);
                     $("#nombre_dispositivo").text("Nombre - " + data.result.asset_name);
-                    $("#modelo").text("Modelo - " + data.result.model_name);
+                    $("#modelo").text("Modelo - Prototipo Mahou");// + data.result.model_name);
                     $("#direccion").text("Dirección - " + data.result.direccion);
                     $("#fecha_inicio").text("Fecha de inicio - " + data.result.fecha_inicio_uso);
               });
