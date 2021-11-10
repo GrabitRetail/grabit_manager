@@ -2,28 +2,30 @@ import boto3
 import json
 from datetime import datetime, date
 
-client =boto3.client('iotsitewise',region_name='eu-west-1') #Recordar que nuestros dispositivos estan configurados en Irlanda
+client = boto3.client('iotsitewise',
+                      region_name='eu-west-1')  # Recordar que nuestros dispositivos estan configurados en Irlanda
+
 
 def main():
-    
-    contenido_modelos=conseguir_modelos()
-    modelo_elegido=contenido_modelos[2] # Usamos el id del modelo 'SiteWise Tutorial Device Model'
-    assets=conseguir_assets(modelo_elegido['id'])
+    contenido_modelos = conseguir_modelos()
+    modelo_elegido = contenido_modelos[1]  # Usamos el id del modelo 'SiteWise Tutorial Device Model'
+    assets = conseguir_assets(modelo_elegido['id'])
     print(assets['assetSummaries'][3])
-    asset_elegido=assets['assetSummaries'][3] #Usamos el id del modelo 'SiteWise Tutorial Device 3'
-    asset=conseguir_asset(asset_elegido['id'])
-    
-    info_total_asset=conseguir_info_total_asset(asset,asset_elegido['id'])
-    print(conseguir_info_momento(asset,asset_elegido['id'],-2))
-    informacion_completa={
-        'model_name':modelo_elegido['name'],
-        'model_id':modelo_elegido['id'],
-        'asset_name':asset_elegido['name'],
+    asset_elegido = assets['assetSummaries'][1]  # Usamos el id del modelo 'SiteWise Tutorial Device 3'
+    asset = conseguir_asset(asset_elegido['id'])
+
+    info_total_asset = conseguir_info_total_asset(asset, asset_elegido['id'])
+    print(conseguir_info_momento(asset, asset_elegido['id']))
+    informacion_completa = {
+        'model_name': modelo_elegido['name'],
+        'model_id': modelo_elegido['id'],
+        'asset_name': asset_elegido['name'],
         'asset_id': asset_elegido['id'],
-        'info_total_asset':info_total_asset
+        'info_total_asset': info_total_asset
     }
-    #print(informacion_completa['model_name'],informacion_completa['model_id'],informacion_completa['asset_name'],informacion_completa['asset_id'],
-    #informacion_completa['info_total_asset'][0]['nombre'],informacion_completa['info_total_asset'][0]['contenido'][0]['valores'])
+
+    # print(informacion_completa['model_name'],informacion_completa['model_id'],informacion_completa['asset_name'],informacion_completa['asset_id'],
+    # informacion_completa['info_total_asset'][0]['nombre'],informacion_completa['info_total_asset'][0]['contenido'][0]['valores'])
 
     informacion_especifica = {
         'nombre_propiedad': informacion_completa['info_total_asset'][0],
@@ -34,105 +36,101 @@ def main():
         'GPU_temp': informacion_completa['info_total_asset'][13],
         'thermal': informacion_completa['info_total_asset'][14]
     }
-    #print(informacion_especifica['CPU1'])
-    #Si devuelve list index out of range no hay informacion
+    # print(informacion_especifica['CPU1'])
+    # Si devuelve list index out of range no hay informacion
 
 
-#Conseguimos la lista de modelos creados en el IoT SiteWise 
+# Conseguimos la lista de modelos creados en el IoT SiteWise
 def conseguir_modelos():
-    
     modelos = client.list_asset_models(
         maxResults=123
     )
 
-    #Extraemos la informacion necesaria de los modelos para utilizarlos mas adelante
-    contenido_modelos=[]
+    # Extraemos la informacion necesaria de los modelos para utilizarlos mas adelante
+    contenido_modelos = []
     for i in modelos['assetModelSummaries']:
-        info_modelos={
-            'id':i['id'],
-            'arn':i['arn'],
-            'name':i['name']
+        info_modelos = {
+            'id': i['id'],
+            'arn': i['arn'],
+            'name': i['name']
         }
-        contenido_modelos.append(info_modelos)  
+        contenido_modelos.append(info_modelos)
     return contenido_modelos
 
 
-
-#Conseguimos los diferentes assets que puede tener un modelo especifico
+# Conseguimos los diferentes assets que puede tener un modelo especifico
 def conseguir_assets(id_modelo):
-    
     assets = client.list_assets(
         maxResults=123,
-        assetModelId=id_modelo, 
+        assetModelId=id_modelo,
         filter='ALL'
     )
     return assets
 
 
-
-#Conseguimos toda la informacion de un asset especifico
+# Conseguimos toda la informacion de un asset especifico
 def conseguir_asset(id_asset):
-    
-    asset=client.describe_asset(
-            assetId=id_asset 
-        )
+    asset = client.describe_asset(
+        assetId=id_asset
+    )
     return asset
 
 
-#Obtenemos la informacion de una propiedad especifica de un asset
-def propiedad_asset(id_asset,fecha_inicio ,id_propiedad):    
-        dt = datetime.today()
-        response = client.get_asset_property_value_history(
-            assetId=id_asset,
-            propertyId=id_propiedad,
-            startDate=fecha_inicio,
-            endDate=datetime(dt.year, dt.month, dt.day),
-            timeOrdering='ASCENDING',
-            maxResults=123
-        ) 
-        return response
-
+# Obtenemos la informacion de una propiedad especifica de un asset
+def propiedad_asset(id_asset, fecha_inicio, id_propiedad):
+    dt = datetime.today()
+    response = client.get_asset_property_value_history(
+        assetId=id_asset,
+        propertyId=id_propiedad,
+        startDate=fecha_inicio,
+        endDate=datetime(dt.year, dt.month, dt.day),
+        timeOrdering='ASCENDING',
+        maxResults=123
+    )
+    return response
 
 
 ####EXTRAER TODA LA INFORMACION DE UN ASSET####
 def conseguir_info_total_asset(asset, id_asset):
-    
-    info_total_asset=[] #Donde se almacena toda la informacion obtenida de un asset
+    info_total_asset = []  # Donde se almacena toda la informacion obtenida de un asset
 
-    #Repasamos todas las propiedades de un asset especifico
+    # Repasamos todas las propiedades de un asset especifico
     for j in asset['assetProperties']:
 
-        #Obtenemos la informacion de una propiedad especifica de un asset
-        propiedad = propiedad_asset(id_asset,datetime(2020, 10, 18), j['id'])
+        # Obtenemos la informacion de una propiedad especifica de un asset
+        propiedad = propiedad_asset(id_asset, datetime(2020, 10, 18), j['id'])
 
-        #Pasamos la informacion conseguida de una propiedad a una lista de diccionarios
-        content=[]
+        # Pasamos la informacion conseguida de una propiedad a una lista de diccionarios
+        content = []
         for valores in propiedad['assetPropertyValueHistory']:
-            info={
-                'valores':valores['value'],
-                'hora':datetime.fromtimestamp(valores['timestamp']['timeInSeconds']) #.strftime('%Y-%m-%d %H:%M:%S')
+            info = {
+                'valores': valores['value'],
+                'hora': datetime.fromtimestamp(valores['timestamp']['timeInSeconds'])  # .strftime('%Y-%m-%d %H:%M:%S')
             }
             content.append(info)
-        
-        #Conseguimos una lista de diccionarios con toda la informacion recibida de cada propiedad
-        propiedades={
-            'nombre':j['name'],
-            'id':j['id'],
+
+        # Conseguimos una lista de diccionarios con toda la informacion recibida de cada propiedad
+        propiedades = {
+            'nombre': j['name'],
+            'id': j['id'],
             'contenido': content
         }
-
-        print(j['name'])
 
         info_total_asset.append(propiedades)
     return info_total_asset
 
 
-def conseguir_info_momento(asset, id_asset,propiedad):
-    info=client.get_asset_property_value(
+def conseguir_info_momento(asset, id_asset):
+    cpu = client.get_asset_property_value(
         assetId=id_asset,
-        propertyId=asset['assetProperties'][propiedad]['id'],
+        propertyId=asset['assetProperties'][1]['id'],
     )
-    return(info['propertyValue']['value'])
+    temp = client.get_asset_property_value(
+        assetId=id_asset,
+        propertyId=asset['assetProperties'][12]['id'],
+    )
+    return (cpu['propertyValue']['value']['doubleValue'], temp['propertyValue']['value']['doubleValue'])
+
 
 if __name__ == "__main__":
     main()

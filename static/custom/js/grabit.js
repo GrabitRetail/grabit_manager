@@ -1,9 +1,9 @@
 // Initialize and add the map
 function initMap() {
     // The location of Uluru
-        const uluru = { lat: -25.344, lng: 131.036 };
+        const uluru = { lat: 40.4381311, lng:-3.8196215 };
         // The map, centered at Uluru
-        const map = new google.maps.Map(document.getElementById("div_dashboard"), {
+        const map = new google.maps.Map(document.getElementById("div_dashboard_map"), {
           zoom: 4,
           center: uluru,
         });
@@ -18,7 +18,7 @@ function initMap() {
           $("#div_dashboard_details").show();
 
 
-          const config = {
+          const config_cpu = {
             type: 'line',
             data: {
                 labels: [],
@@ -63,21 +63,91 @@ function initMap() {
             }
           };
 
-          const context = document.getElementById('canvas').getContext('2d');
-
-          const lineChart = new Chart(context, config);
-
-          const source = new EventSource("/chart-data");
-
-          source.onmessage = function (event) {
-            const data = JSON.parse(event.data);
-            if (config.data.labels.length === 20) {
-                config.data.labels.shift();
-                config.data.datasets[0].data.shift();
+          const config_temp = {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: "Random Dataset",
+                    backgroundColor: 'rgb(255, 99, 132)',
+                    borderColor: 'rgb(255, 99, 132)',
+                    data: [],
+                    fill: false,
+                }],
+            },
+            options: {
+                responsive: true,
+                title: {
+                    display: true,
+                    text: 'Creating Real-Time Charts with Flask'
+                },
+                tooltips: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                hover: {
+                    mode: 'nearest',
+                    intersect: true
+                },
+                scales: {
+                    xAxes: [{
+                        display: true,
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Time'
+                        }
+                    }],
+                    yAxes: [{
+                        display: true,
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Value'
+                        }
+                    }]
+                }
             }
-            config.data.labels.push(data.time);
-            config.data.datasets[0].data.push(data.value);
-            lineChart.update();
+          };
+
+          const context_cpu = document.getElementById('canvas_cpu').getContext('2d');
+          const context_temp = document.getElementById('canvas_temp').getContext('2d');
+
+          const lineChart_cpu = new Chart(context_cpu, config_cpu);
+          const lineChart_temp = new Chart(context_temp, config_temp);
+
+          const source_cpu = new EventSource("/chart-data");
+          const source_temp = new EventSource("/chart-data");
+          var source_cervezas_mahou = new EventSource("/chart-data");
+          var source_cervezas_otras = new EventSource("/chart-data");
+
+          source_cervezas_mahou.onmessage = function(event) {
+            const data_cervezas_mahou = JSON.parse(event.data);
+            document.getElementById("cervezas_mahou").innerHTML = data_cervezas_mahou.cervezas_mahou;
+          };
+          source_cervezas_otras.onmessage = function(event) {
+            const data_cervezas_otras = JSON.parse(event.data);
+            document.getElementById("cervezas_otras").innerHTML = data_cervezas_otras.otros;
+          };
+
+          source_cpu.onmessage = function (event) {
+            const data_cpu = JSON.parse(event.data);
+            if (config_cpu.data.labels.length === 20) {
+                config_cpu.data.labels.shift();
+                config_cpu.data.datasets[0].data.shift();
+            }
+            config_cpu.data.labels.push(data_cpu.time);
+            config_cpu.data.datasets[0].data.push(data_cpu.CPU);
+            lineChart_cpu.update();
+          };
+
+          source_temp.onmessage = function (event) {
+            const data_temp = JSON.parse(event.data);
+            if (config_temp.data.labels.length === 20) {
+                config_temp.data.labels.shift();
+                config_temp.data.datasets[0].data.shift();
+            }
+            config_temp.data.labels.push(data_temp.time);
+            config_temp.data.datasets[0].data.push(data_temp.thermal);
+            lineChart_temp.update();
           }
 
 
@@ -86,7 +156,11 @@ function initMap() {
           $.getJSON($SCRIPT_ROOT + '/leer_datos_sideways', {
             c: $("#selec_proyecto").val()
             }, function(data) {
-                    console.log(data.result)
+                    console.log(data.result.asset_name);
+                    $("#nombre_dispositivo").text("Nombre - " + data.result.asset_name);
+                    $("#modelo").text("Modelo - " + data.result.model_name);
+                    $("#direccion").text("Dirección - " + data.result.direccion);
+                    $("#fecha_inicio").text("Fecha de inicio - " + data.result.fecha_inicio_uso);
               });
             });
       }

@@ -9,8 +9,9 @@ import sys
 import boto3
 from random import randrange
 
-
-#######CONSTANTES####
+cluster_arn="arn:aws:rds:eu-west-2:936810513177:cluster:grabit"
+secret_arn="arn:aws:secretsmanager:eu-west-2:936810513177:secret:rds-db-credentials/cluster-ZYD4OUSXSHYWHZJBNN4Y5ZWHZ4/admin-BXS1VO"
+#constantes
 
 otros=0 #Numero de inicio de cervezas que no sean de mahou
 offset_otros=0 #Numero de offset de cervezas que no sean de mahou
@@ -134,7 +135,7 @@ def conseguir_info_total_asset(asset, id_asset):
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    return render_template("index1.html")
 
 @app.route('/leer_datos')
 def leer_datos():
@@ -178,41 +179,49 @@ def leer_datos_sideways():
     modelo_elegido = contenido_modelos[2]  # Usamos el id del modelo 'SiteWise Tutorial Device Model'
     assets = conseguir_assets(modelo_elegido['id'])
 
-    asset_elegido = assets['assetSummaries'][3]  # Usamos el id del asset de la Jetson del frigorifico de Mahou
+    asset_elegido = assets['assetSummaries'][3]  # Usamos el id del modelo 'SiteWise Tutorial Device 3'
     asset = conseguir_asset(asset_elegido['id'])
+
+    info_total_asset = conseguir_info_total_asset(asset, asset_elegido['id'])
 
     informacion_completa = {
         'model_name': modelo_elegido['name'],
-        'asset_name': asset_elegido['name'], #Nombre del equipo
-        'fecha_inicio_uso':asset['assetCreationDate'],
-        'direccion':conseguir_info_momento(asset,asset_elegido['id'],1)['stringValue'],
-    }    
+        'asset_name': asset_elegido['name'],  # Nombre del equipo
+        'fecha_inicio_uso': asset['assetCreationDate'],
+        'direccion': conseguir_info_momento(asset, asset_elegido['id'], 1)['stringValue'],
+    }
     return jsonify(result=informacion_completa)
+
+
 
 @app.route('/chart-data')
 def chart_data():
     def generate_random_data():
-        datos_sitewise=conseguir_asset_id()
+        datos_sitewise = conseguir_asset_id()
         while True:
-            total_otros=otros-offset_otros+int(conseguir_info_momento(datos_sitewise[0], datos_sitewise[1],-4)['integerValue'])
-            total_mahou=cervezas_mahou-offset_mahou+int(conseguir_info_momento(datos_sitewise[0], datos_sitewise[1],-5)['integerValue'])
+            total_otros = otros - offset_otros + int(
+                conseguir_info_momento(datos_sitewise[0], datos_sitewise[1], -4)['integerValue'])
+            total_mahou = cervezas_mahou - offset_mahou + int(
+                conseguir_info_momento(datos_sitewise[0], datos_sitewise[1], -5)['integerValue'])
             json_data = json.dumps(
-                {'time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'), 
-                #'CPU': conseguir_info_momento(datos_sitewise[0], datos_sitewise[1],2)['doubleValue'], 
-                'CPU':generar_valores(),
-                'thermal':conseguir_info_momento(datos_sitewise[0], datos_sitewise[1],13)['doubleValue'],
-                'temp_nevera':conseguir_info_momento(datos_sitewise[0], datos_sitewise[1],-3)['doubleValue'],
-                'num_aperturas':conseguir_info_momento(datos_sitewise[0], datos_sitewise[1],-6)['integerValue'],
-                'tiempo_aperturas':conseguir_info_momento(datos_sitewise[0], datos_sitewise[1],-2)['stringValue'],
-                'otros':total_otros,
-                'cervezas_mahou':total_mahou                
-                })
+                {'time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                 #'CPU': conseguir_info_momento(datos_sitewise[0], datos_sitewise[1], 2)['doubleValue'],
+                 'CPU': generar_valores(),
+                 'thermal':conseguir_info_momento(datos_sitewise[0], datos_sitewise[1],13)['doubleValue'],
+                 'temp_nevera':conseguir_info_momento(datos_sitewise[0], datos_sitewise[1],-3)['doubleValue'],
+                 'num_aperturas':conseguir_info_momento(datos_sitewise[0], datos_sitewise[1],-6)['integerValue'],
+                 'tiempo_aperturas':conseguir_info_momento(datos_sitewise[0], datos_sitewise[1],-2)['stringValue'],
+                 'otros':total_otros,
+                 'cervezas_mahou':total_mahou
+                 })
             yield f"data:{json_data}\n\n"
             print(json_data)
             time.sleep(1)
-            print('Numero de inicio de cervezas Mahou: '+str(cervezas_mahou)+' Numero de Offset cervezas Mahou'+str(offset_mahou))
-            print('Numero de inicio de otras cervezas: '+str(otros)+'  Numero de Offset cervezas: '+str(offset_otros))
-    
+            print(
+                'Numero de inicio de cervezas Mahou: ' + str(cervezas_mahou) + ' Numero de Offset cervezas Mahou' + str(
+                    offset_mahou))
+            print('Numero de inicio de otras cervezas: ' + str(otros) + '  Numero de Offset cervezas: ' + str(
+                offset_otros))
 
     return Response(generate_random_data(), mimetype='text/event-stream')
 
@@ -226,7 +235,6 @@ def conseguir_info_momento(asset, id_asset,propiedad):
 
 """ORDEN DE PROPIEDAES DE UN ASSET
 nombre
-dirección
 CPU 1 usage
 CPU 2 usage
 CPU 3 usage
@@ -241,14 +249,16 @@ GPU usage
 CPU Temp
 GPU Temp
 Thermal
+TempAO
+TempPPL
 IP
 Jetpack version
 Numero Aperturas
+Tiempo Medio Aperturas
 Cervezas Mahou
 Otros elementos
 Temp Nevera
-Tiempo Medio Aperturas
-tiempo_aperturas
+Direccion
 """
 
 def conseguir_asset_id():
@@ -271,7 +281,7 @@ def set_otros():
     otros=int(request.form['otros']) #Cambiar este valor para mapearlo con la forma que se tienen que recibir los valores
     offset_otros=int(conseguir_info_momento(datos_sitewise[0], datos_sitewise[1],-4)['integerValue'])
     print('Numero de inicio de otras cervezas: '+str(otros)+' Numero de Offset cervezas Mahou'+str(offset_otros))
-    return jsonify({'status':'OK'})#Cambiar esto con lo que tenga que ser, el html o lo que haya que mostrar 
+    return jsonify({'status':'OK'})#Cambiar esto con lo que tenga que ser, el html o lo que haya que mostrar
 
 @app.route('/set_mahou', methods=['POST'])
 def set_mahou():
@@ -281,16 +291,18 @@ def set_mahou():
     cervezas_mahou=int(request.form['cerveza_mahou']) #Cambiar este valor para mapearlo con la forma que se tienen que recibir los valores
     offset_mahou=int(conseguir_info_momento(datos_sitewise[0], datos_sitewise[1],-5)['integerValue'])
     print('Numero de inicio de cervezas Mahou: '+str(cervezas_mahou)+' Numero de Offset cervezas Mahou'+str(offset_mahou))
-    return jsonify({'status':'OK'})#Cambiar esto con lo que tenga que ser, el html o lo que haya que mostrar 
+    return jsonify({'status':'OK'})#Cambiar esto con lo que tenga que ser, el html o lo que haya que mostrar
 
 #Genera valores falsos de la CPU para mostrarlos en la grafica
 def generar_valores():
     dc=47 #Valor minimo que se va a mostrar en la grafica
     ac=15 #Desviacion maxima que tendra el valor en la grafica
-    valor=dc+ac*randrange(100)*0.01   
+    valor=dc+ac*randrange(100)*0.01
     return(valor)
-
 
 if __name__=="__main__":
     app.run()
-           
+
+
+
+
