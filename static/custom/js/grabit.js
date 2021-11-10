@@ -215,6 +215,39 @@ $(document).ready(function(){
         $("#div_ver_datos").hide()
     });
 
+
+    // resetear el numero de cervezas mahou
+    $('#reset_mahou').click(function(){
+        $.ajax({
+            url: '/set_mahou',
+            data: $('form').serialize(),
+            type: 'POST',
+            success: function(response){
+                console.log(response);
+            },
+            error: function(error){
+                console.log(error);
+            }
+        });
+
+    });
+
+    // resetear el numero de otras cervezas
+    $('#reset_otros').click(function(){
+        $.ajax({
+            url: '/set_otros',
+            data: $('form').serialize(),
+            type: 'POST',
+            success: function(response){
+                console.log(response);
+            },
+            error: function(error){
+                console.log(error);
+            }
+        });
+
+    });
+
     //al hacer la selección de la tabla, se muestran los datos de dicha tabla
     $("#selec_proyecto").change(function() {
         $("#tableWithSearch > tbody").empty();
