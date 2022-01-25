@@ -1,6 +1,6 @@
 import boto3
 import json
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 
 client = boto3.client('iotsitewise',
                       region_name='eu-west-1')  # Recordar que nuestros dispositivos estan configurados en Irlanda
@@ -8,14 +8,16 @@ client = boto3.client('iotsitewise',
 
 def main():
     contenido_modelos = conseguir_modelos()
-    modelo_elegido = contenido_modelos[1]  # Usamos el id del modelo 'SiteWise Tutorial Device Model'
+    modelo_elegido = contenido_modelos[2]  # Usamos el id del modelo 'SiteWise Tutorial Device Model'
     assets = conseguir_assets(modelo_elegido['id'])
     print(assets['assetSummaries'][3])
-    asset_elegido = assets['assetSummaries'][1]  # Usamos el id del modelo 'SiteWise Tutorial Device 3'
+    asset_elegido = assets['assetSummaries'][3]  # Usamos el id del modelo 'SiteWise Tutorial Device 3'
     asset = conseguir_asset(asset_elegido['id'])
-
+    
     info_total_asset = conseguir_info_total_asset(asset, asset_elegido['id'])
+    
     print(conseguir_info_momento(asset, asset_elegido['id']))
+    """""
     informacion_completa = {
         'model_name': modelo_elegido['name'],
         'model_id': modelo_elegido['id'],
@@ -38,7 +40,7 @@ def main():
     }
     # print(informacion_especifica['CPU1'])
     # Si devuelve list index out of range no hay informacion
-
+"""
 
 # Conseguimos la lista de modelos creados en el IoT SiteWise
 def conseguir_modelos():
@@ -123,14 +125,20 @@ def conseguir_info_total_asset(asset, id_asset):
 def conseguir_info_momento(asset, id_asset):
     cpu = client.get_asset_property_value(
         assetId=id_asset,
-        propertyId=asset['assetProperties'][1]['id'],
+        propertyId=asset['assetProperties'][2]['id'],
     )
     temp = client.get_asset_property_value(
         assetId=id_asset,
         propertyId=asset['assetProperties'][12]['id'],
     )
+    d=datetime.fromtimestamp(cpu['propertyValue']['timestamp']['timeInSeconds'])
+    hoy=datetime.now()
+    y=hoy-timedelta(seconds=5)
+    if(y>d):
+        valor_cpu=0
+    print(d,hoy,y,valor_cpu)
     return (cpu['propertyValue']['value']['doubleValue'], temp['propertyValue']['value']['doubleValue'])
-
+ 
 
 if __name__ == "__main__":
     main()

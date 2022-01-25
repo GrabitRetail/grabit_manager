@@ -104,6 +104,7 @@ def propiedad_asset(id_asset, fecha_inicio, id_propiedad):
 
 
 ####EXTRAER TODA LA INFORMACION DE UN ASSET####
+"""
 def conseguir_info_total_asset(asset, id_asset):
     info_total_asset = []  # Donde se almacena toda la informacion obtenida de un asset
 
@@ -111,8 +112,7 @@ def conseguir_info_total_asset(asset, id_asset):
     for j in asset['assetProperties']:
 
         # Obtenemos la informacion de una propiedad especifica de un asset
-        propiedad = propiedad_asset(id_asset, datetime(2020, 10, 18), j['id'])
-
+        propiedad = propiedad_asset(id_asset, datetime(2022, 1, 18), j['id'])
         # Pasamos la informacion conseguida de una propiedad a una lista de diccionarios
         content = []
         for valores in propiedad['assetPropertyValueHistory']:
@@ -131,6 +131,8 @@ def conseguir_info_total_asset(asset, id_asset):
 
         info_total_asset.append(propiedades)
     return info_total_asset
+"""
+
 
 @app.route("/")
 def index():
@@ -177,11 +179,10 @@ def leer_datos_sideways():
     contenido_modelos = conseguir_modelos()
     modelo_elegido = contenido_modelos[2]  # Usamos el id del modelo 'SiteWise Tutorial Device Model'
     assets = conseguir_assets(modelo_elegido['id'])
-
-    asset_elegido = assets['assetSummaries'][3]  # Usamos el id del modelo 'SiteWise Tutorial Device 3'
+    asset_elegido = assets['assetSummaries'][0]  # Usamos el id del modelo 'SiteWise Tutorial Device 3'
     asset = conseguir_asset(asset_elegido['id'])
 
-    info_total_asset = conseguir_info_total_asset(asset, asset_elegido['id'])
+    #info_total_asset = conseguir_info_total_asset(asset, asset_elegido['id'])
 
     informacion_completa = {
         'model_name': modelo_elegido['name'],
@@ -264,9 +265,12 @@ def conseguir_asset_id():
     contenido_modelos = conseguir_modelos()
     modelo_elegido = contenido_modelos[2]  # Usamos el id del modelo 'SiteWise Tutorial Device Model'
     assets = conseguir_assets(modelo_elegido['id'])
+    
 
-    asset_elegido = assets['assetSummaries'][3]  # Usamos el id del asset de la Jetson del frigorifico de Mahou
+    asset_elegido = assets['assetSummaries'][0]  # Usamos el id del asset de la Jetson del frigorifico de Mahou
+    
     asset = conseguir_asset(asset_elegido['id'])
+
     return asset,asset_elegido['id']
 
 
